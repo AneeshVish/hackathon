@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: patient-ml
+  labels:
+    name: patient-ml
+    app: patient-deterioration-ml

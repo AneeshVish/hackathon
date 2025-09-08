@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: patient-ml-config
+  namespace: patient-ml
+data:
+  DATABASE_URL: "postgresql://postgres:postgres@postgres-service:5432/patient_ml"
+  REDIS_URL: "redis://redis-service:6379"
+  MLFLOW_TRACKING_URI: "http://mlflow-service:5000"
+  DEVELOPMENT_MODE: "false"
+  PROMETHEUS_PORT: "8080"
+  LOG_LEVEL: "INFO"
+  FEATURE_STORE_PATH: "/app/feature_store"
+  MODEL_VERSION: "latest"
+  PREDICTION_THRESHOLD_HIGH: "0.7"
+  PREDICTION_THRESHOLD_MEDIUM: "0.3"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: patient-ml-secrets
+  namespace: patient-ml
+type: Opaque
+data:
+  # Base64 encoded secrets - change these in production
+  API_SECRET_KEY: eW91ci1zZWNyZXQta2V5LWNoYW5nZS1pbi1wcm9kdWN0aW9u
+  ENCRYPTION_KEY: eW91ci1lbmNyeXB0aW9uLWtleS1jaGFuZ2UtaW4tcHJvZHVjdGlvbg==
+  POSTGRES_PASSWORD: cG9zdGdyZXM=
