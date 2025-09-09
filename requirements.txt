@@ -9,7 +9,6 @@ xgboost==2.0.3
 shap==0.44.0
 mlflow==2.9.2
 
-
 # ======================
 # API and Web Framework
 # ======================
@@ -24,7 +23,10 @@ python-multipart==0.0.6
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 redis==5.0.1
-apache-airflow>=3.0.0
+# Airflow requires constraints for installation on PyPI
+apache-airflow==2.10.2
+# Install with: pip install "apache-airflow==2.10.2" \
+#   --constraint "https://raw.githubusercontent.com/apache/airflow/constraints-2.10.2/constraints-3.12.txt"
 feast==0.34.1
 
 # ======================
