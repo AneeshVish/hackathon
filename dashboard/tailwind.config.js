@@ -64,6 +64,6 @@ module.exports = {
     },
   },
   plugins: [
-    require('@tailwindcss/forms'),
+    // require('@tailwindcss/forms'), // Temporarily disabled due to installation issues
   ],
 }

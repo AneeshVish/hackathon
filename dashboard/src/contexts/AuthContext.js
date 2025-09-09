@@ -17,9 +17,18 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
 
   useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error('Failed to parse user data', e);
+        localStorage.removeItem('user');
+      }
+    }
+    
     if (token) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      // Validate token and get user info
       validateToken();
     } else {
       setLoading(false);
@@ -51,38 +60,41 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      // For demo purposes, simulate login
-      const demoToken = 'demo_token_' + Date.now();
-      
-      localStorage.setItem('token', demoToken);
-      setToken(demoToken);
-      
+      // In a real app, you would make an API call here
+      // const response = await axios.post('/api/auth/login', credentials);
       const mockUser = {
         id: 'demo_clinician_001',
-        username: credentials.username || 'demo_clinician',
+        username: credentials.username,
         role: 'clinician',
-        name: 'Dr. Sarah Johnson',
-        email: 'sarah.johnson@hospital.com',
+        name: credentials.username === 'demo' ? 'Demo Clinician' : 'Dr. Sarah Johnson',
+        email: `${credentials.username}@example.com`,
         permissions: ['patient_access', 'cohort_access', 'submit_feedback'],
         clinic_access: ['DEMO_CLINIC_001', 'DEMO_CLINIC_002'],
         care_team_access: ['DEMO_TEAM_001', 'DEMO_TEAM_002']
       };
       
-      setUser(mockUser);
-      axios.defaults.headers.common['Authorization'] = `Bearer ${demoToken}`;
+      const mockToken = 'demo_token_' + Math.random().toString(36).substring(2);
       
-      return { success: true };
+      localStorage.setItem('token', mockToken);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      
+      setUser(mockUser);
+      setToken(mockToken);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${mockToken}`;
+      
+      return mockUser;
     } catch (error) {
       console.error('Login failed:', error);
-      return { success: false, error: error.message };
+      throw new Error('Login failed. Please check your credentials and try again.');
     }
   };
-
+  
   const logout = () => {
     localStorage.removeItem('token');
-    setToken(null);
-    setUser(null);
+    localStorage.removeItem('user');
     delete axios.defaults.headers.common['Authorization'];
+    setUser(null);
+    setToken(null);
   };
 
   const value = {

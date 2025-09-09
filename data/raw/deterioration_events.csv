@@ -1,0 +1,276 @@
+patient_id,event_date,event_type,severity
+101,15-04-2025,Hospitalization,High
+101,20-05-2025,ER Visit,Medium
+101,10-06-2025,Hospitalization,Low
+101,01-07-2025,ER Visit,High
+101,20-07-2025,Hospitalization,Medium
+102,16-04-2025,Hospitalization,Medium
+102,21-05-2025,ER Visit,Low
+102,11-06-2025,Hospitalization,High
+102,02-07-2025,ER Visit,Medium
+102,21-07-2025,Hospitalization,Low
+103,17-04-2025,Hospitalization,Low
+103,22-05-2025,ER Visit,High
+103,12-06-2025,Hospitalization,Medium
+103,03-07-2025,ER Visit,Low
+103,22-07-2025,Hospitalization,High
+104,18-04-2025,Hospitalization,High
+104,23-05-2025,ER Visit,Medium
+104,13-06-2025,Hospitalization,Low
+104,04-07-2025,ER Visit,High
+104,23-07-2025,Hospitalization,Medium
+105,19-04-2025,Hospitalization,Medium
+105,24-05-2025,ER Visit,Low
+105,14-06-2025,Hospitalization,High
+105,05-07-2025,ER Visit,Medium
+105,24-07-2025,Hospitalization,Low
+106,20-04-2025,Hospitalization,Low
+106,25-05-2025,ER Visit,High
+106,15-06-2025,Hospitalization,Medium
+106,06-07-2025,ER Visit,Low
+106,25-07-2025,Hospitalization,High
+107,21-04-2025,Hospitalization,High
+107,26-05-2025,ER Visit,Medium
+107,16-06-2025,Hospitalization,Low
+107,07-07-2025,ER Visit,High
+107,26-07-2025,Hospitalization,Medium
+108,22-04-2025,Hospitalization,Medium
+108,27-05-2025,ER Visit,Low
+108,17-06-2025,Hospitalization,High
+108,08-07-2025,ER Visit,Medium
+108,27-07-2025,Hospitalization,Low
+109,23-04-2025,Hospitalization,Low
+109,28-05-2025,ER Visit,High
+109,18-06-2025,Hospitalization,Medium
+109,09-07-2025,ER Visit,Low
+109,28-07-2025,Hospitalization,High
+110,24-04-2025,Hospitalization,High
+110,29-05-2025,ER Visit,Medium
+110,19-06-2025,Hospitalization,Low
+110,10-07-2025,ER Visit,High
+110,29-07-2025,Hospitalization,Medium
+111,25-04-2025,Hospitalization,Medium
+111,30-05-2025,ER Visit,Low
+111,20-06-2025,Hospitalization,High
+111,11-07-2025,ER Visit,Medium
+111,30-07-2025,Hospitalization,Low
+112,26-04-2025,Hospitalization,Low
+112,31-05-2025,ER Visit,High
+112,21-06-2025,Hospitalization,Medium
+112,12-07-2025,ER Visit,Low
+112,31-07-2025,Hospitalization,High
+113,27-04-2025,Hospitalization,High
+113,01-06-2025,ER Visit,Medium
+113,22-06-2025,Hospitalization,Low
+113,13-07-2025,ER Visit,High
+113,01-08-2025,Hospitalization,Medium
+114,28-04-2025,Hospitalization,Medium
+114,02-06-2025,ER Visit,Low
+114,23-06-2025,Hospitalization,High
+114,14-07-2025,ER Visit,Medium
+114,02-08-2025,Hospitalization,Low
+115,29-04-2025,Hospitalization,Low
+115,03-06-2025,ER Visit,High
+115,24-06-2025,Hospitalization,Medium
+115,15-07-2025,ER Visit,Low
+115,03-08-2025,Hospitalization,High
+116,30-04-2025,Hospitalization,High
+116,04-06-2025,ER Visit,Medium
+116,25-06-2025,Hospitalization,Low
+116,16-07-2025,ER Visit,High
+116,04-08-2025,Hospitalization,Medium
+117,01-05-2025,Hospitalization,Medium
+117,05-06-2025,ER Visit,Low
+117,26-06-2025,Hospitalization,High
+117,17-07-2025,ER Visit,Medium
+117,05-08-2025,Hospitalization,Low
+118,02-05-2025,Hospitalization,Low
+118,06-06-2025,ER Visit,High
+118,27-06-2025,Hospitalization,Medium
+118,18-07-2025,ER Visit,Low
+118,06-08-2025,Hospitalization,High
+119,03-05-2025,Hospitalization,High
+119,07-06-2025,ER Visit,Medium
+119,28-06-2025,Hospitalization,Low
+119,19-07-2025,ER Visit,High
+119,07-08-2025,Hospitalization,Medium
+120,04-05-2025,Hospitalization,Medium
+120,08-06-2025,ER Visit,Low
+120,29-06-2025,Hospitalization,High
+120,20-07-2025,ER Visit,Medium
+120,08-08-2025,Hospitalization,Low
+121,05-05-2025,Hospitalization,Low
+121,09-06-2025,ER Visit,High
+121,30-06-2025,Hospitalization,Medium
+121,21-07-2025,ER Visit,Low
+121,09-08-2025,Hospitalization,High
+122,06-05-2025,Hospitalization,High
+122,10-06-2025,ER Visit,Medium
+122,01-07-2025,Hospitalization,Low
+122,22-07-2025,ER Visit,High
+122,10-08-2025,Hospitalization,Medium
+123,07-05-2025,Hospitalization,Medium
+123,11-06-2025,ER Visit,Low
+123,02-07-2025,Hospitalization,High
+123,23-07-2025,ER Visit,Medium
+123,11-08-2025,Hospitalization,Low
+124,08-05-2025,Hospitalization,Low
+124,12-06-2025,ER Visit,High
+124,03-07-2025,Hospitalization,Medium
+124,24-07-2025,ER Visit,Low
+124,12-08-2025,Hospitalization,High
+125,09-05-2025,Hospitalization,High
+125,13-06-2025,ER Visit,Medium
+125,04-07-2025,Hospitalization,Low
+125,25-07-2025,ER Visit,High
+125,13-08-2025,Hospitalization,Medium
+126,10-05-2025,Hospitalization,Medium
+126,14-06-2025,ER Visit,Low
+126,05-07-2025,Hospitalization,High
+126,26-07-2025,ER Visit,Medium
+126,14-08-2025,Hospitalization,Low
+127,11-05-2025,Hospitalization,Low
+127,15-06-2025,ER Visit,High
+127,06-07-2025,Hospitalization,Medium
+127,27-07-2025,ER Visit,Low
+127,15-08-2025,Hospitalization,High
+128,12-05-2025,Hospitalization,High
+128,16-06-2025,ER Visit,Medium
+128,07-07-2025,Hospitalization,Low
+128,28-07-2025,ER Visit,High
+128,16-08-2025,Hospitalization,Medium
+129,13-05-2025,Hospitalization,Medium
+129,17-06-2025,ER Visit,Low
+129,08-07-2025,Hospitalization,High
+129,29-07-2025,ER Visit,Medium
+129,17-08-2025,Hospitalization,Low
+130,14-05-2025,Hospitalization,Low
+130,18-06-2025,ER Visit,High
+130,09-07-2025,Hospitalization,Medium
+130,30-07-2025,ER Visit,Low
+130,18-08-2025,Hospitalization,High
+131,15-05-2025,Hospitalization,High
+131,19-06-2025,ER Visit,Medium
+131,10-07-2025,Hospitalization,Low
+131,31-07-2025,ER Visit,High
+131,19-08-2025,Hospitalization,Medium
+132,16-05-2025,Hospitalization,Medium
+132,20-06-2025,ER Visit,Low
+132,11-07-2025,Hospitalization,High
+132,01-08-2025,ER Visit,Medium
+132,20-08-2025,Hospitalization,Low
+133,17-05-2025,Hospitalization,Low
+133,21-06-2025,ER Visit,High
+133,12-07-2025,Hospitalization,Medium
+133,02-08-2025,ER Visit,Low
+133,21-08-2025,Hospitalization,High
+134,18-05-2025,Hospitalization,High
+134,22-06-2025,ER Visit,Medium
+134,13-07-2025,Hospitalization,Low
+134,03-08-2025,ER Visit,High
+134,22-08-2025,Hospitalization,Medium
+135,19-05-2025,Hospitalization,Medium
+135,23-06-2025,ER Visit,Low
+135,14-07-2025,Hospitalization,High
+135,04-08-2025,ER Visit,Medium
+135,23-08-2025,Hospitalization,Low
+136,20-05-2025,Hospitalization,Low
+136,24-06-2025,ER Visit,High
+136,15-07-2025,Hospitalization,Medium
+136,05-08-2025,ER Visit,Low
+136,24-08-2025,Hospitalization,High
+137,21-05-2025,Hospitalization,High
+137,25-06-2025,ER Visit,Medium
+137,16-07-2025,Hospitalization,Low
+137,06-08-2025,ER Visit,High
+137,25-08-2025,Hospitalization,Medium
+138,22-05-2025,Hospitalization,Medium
+138,26-06-2025,ER Visit,Low
+138,17-07-2025,Hospitalization,High
+138,07-08-2025,ER Visit,Medium
+138,26-08-2025,Hospitalization,Low
+139,23-05-2025,Hospitalization,Low
+139,27-06-2025,ER Visit,High
+139,18-07-2025,Hospitalization,Medium
+139,08-08-2025,ER Visit,Low
+139,27-08-2025,Hospitalization,High
+140,24-05-2025,Hospitalization,High
+140,28-06-2025,ER Visit,Medium
+140,19-07-2025,Hospitalization,Low
+140,09-08-2025,ER Visit,High
+140,28-08-2025,Hospitalization,Medium
+141,25-05-2025,Hospitalization,Medium
+141,29-06-2025,ER Visit,Low
+141,20-07-2025,Hospitalization,High
+141,10-08-2025,ER Visit,Medium
+141,29-08-2025,Hospitalization,Low
+142,26-05-2025,Hospitalization,Low
+142,30-06-2025,ER Visit,High
+142,21-07-2025,Hospitalization,Medium
+142,11-08-2025,ER Visit,Low
+142,30-08-2025,Hospitalization,High
+143,27-05-2025,Hospitalization,High
+143,01-07-2025,ER Visit,Medium
+143,22-07-2025,Hospitalization,Low
+143,12-08-2025,ER Visit,High
+143,31-08-2025,Hospitalization,Medium
+144,28-05-2025,Hospitalization,Medium
+144,02-07-2025,ER Visit,Low
+144,23-07-2025,Hospitalization,High
+144,13-08-2025,ER Visit,Medium
+144,01-09-2025,Hospitalization,Low
+145,29-05-2025,Hospitalization,Low
+145,03-07-2025,ER Visit,High
+145,24-07-2025,Hospitalization,Medium
+145,14-08-2025,ER Visit,Low
+145,02-09-2025,Hospitalization,High
+146,30-05-2025,Hospitalization,High
+146,04-07-2025,ER Visit,Medium
+146,25-07-2025,Hospitalization,Low
+146,15-08-2025,ER Visit,High
+146,03-09-2025,Hospitalization,Medium
+147,31-05-2025,Hospitalization,Medium
+147,05-07-2025,ER Visit,Low
+147,26-07-2025,Hospitalization,High
+147,16-08-2025,ER Visit,Medium
+147,04-09-2025,Hospitalization,Low
+148,01-06-2025,Hospitalization,Low
+148,06-07-2025,ER Visit,High
+148,27-07-2025,Hospitalization,Medium
+148,17-08-2025,ER Visit,Low
+148,05-09-2025,Hospitalization,High
+149,02-06-2025,Hospitalization,High
+149,07-07-2025,ER Visit,Medium
+149,28-07-2025,Hospitalization,Low
+149,18-08-2025,ER Visit,High
+149,06-09-2025,Hospitalization,Medium
+150,03-06-2025,Hospitalization,Medium
+150,08-07-2025,ER Visit,Low
+150,29-07-2025,Hospitalization,High
+150,19-08-2025,ER Visit,Medium
+150,07-09-2025,Hospitalization,Low
+151,04-06-2025,Hospitalization,Low
+151,09-07-2025,ER Visit,High
+151,30-07-2025,Hospitalization,Medium
+151,20-08-2025,ER Visit,Low
+151,08-09-2025,Hospitalization,High
+152,05-06-2025,Hospitalization,High
+152,10-07-2025,ER Visit,Medium
+152,31-07-2025,Hospitalization,Low
+152,21-08-2025,ER Visit,High
+152,09-09-2025,Hospitalization,Medium
+153,06-06-2025,Hospitalization,Medium
+153,11-07-2025,ER Visit,Low
+153,01-08-2025,Hospitalization,High
+153,22-08-2025,ER Visit,Medium
+153,10-09-2025,Hospitalization,Low
+154,07-06-2025,Hospitalization,Low
+154,12-07-2025,ER Visit,High
+154,02-08-2025,Hospitalization,Medium
+154,23-08-2025,ER Visit,Low
+154,11-09-2025,Hospitalization,High
+155,08-06-2025,Hospitalization,High
+155,13-07-2025,ER Visit,Medium
+155,03-08-2025,Hospitalization,Low
+155,24-08-2025,ER Visit,High
+155,12-09-2025,Hospitalization,Medium

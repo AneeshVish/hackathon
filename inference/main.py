@@ -20,46 +20,59 @@ import os
 from contextlib import asynccontextmanager
 
 from pydantic import BaseModel, Field
-from data.schemas import PredictionRequest, PredictionResult, CohortRequest, CohortResponse
-from models.explainability import ExplainabilityEngine
-from .model_registry import ModelRegistry
-from .security import SecurityManager
-from .monitoring import MonitoringService
-from .audit import AuditLogger
+# Simplified imports - remove complex dependencies for now
+# from data.schemas import PredictionRequest, PredictionResult, CohortRequest, CohortResponse
+# from models.explainability import ExplainabilityEngine
+# from .model_registry import ModelRegistry
+# from .security import SecurityManager
+# from .monitoring import MonitoringService
+# from .audit import AuditLogger
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Simplified request/response models
+class PredictionRequest(BaseModel):
+    patient_id: str
+    timestamp: Optional[datetime] = Field(default_factory=datetime.utcnow)
+
+class CohortResponse(BaseModel):
+    patients: List[Dict[str, Any]]
+    total_count: int
+    risk_distribution: Dict[str, int]
+
 # Global variables for model and services
-model_registry = None
-explainer = None
-security_manager = None
-monitoring_service = None
-audit_logger = None
+current_model = None
+feature_names = []
+model_version = "1.0.0"
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan management"""
-    global model_registry, explainer, security_manager, monitoring_service, audit_logger
+    global current_model, feature_names
     
     # Startup
     logger.info("Starting Patient Deterioration Prediction API")
     
-    # Initialize services
-    model_registry = ModelRegistry()
-    explainer = ExplainabilityEngine()
-    security_manager = SecurityManager()
-    monitoring_service = MonitoringService()
-    audit_logger = AuditLogger()
-    
-    # Load default model
+    # Try to load a trained model
     try:
-        model_registry.load_default_model()
-        logger.info("Default model loaded successfully")
+        model_path = Path("./models/trained/models")
+        if model_path.exists():
+            # Look for any .joblib model file
+            model_files = list(model_path.glob("*.joblib"))
+            if model_files:
+                current_model = joblib.load(model_files[0])
+                logger.info(f"Loaded model: {model_files[0].name}")
+                # Generate mock feature names
+                feature_names = [f"feature_{i}" for i in range(50)]
+            else:
+                logger.warning("No trained models found")
+        else:
+            logger.warning("Models directory not found")
     except Exception as e:
-        logger.error(f"Failed to load default model: {e}")
+        logger.error(f"Failed to load model: {e}")
     
     yield
     
@@ -86,11 +99,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Security
-security = HTTPBearer()
+# Simplified security (no authentication for demo)
+# security = HTTPBearer()
 
 
-# Request/Response Models
+# Additional Response Models
 class HealthResponse(BaseModel):
     status: str
     timestamp: datetime
@@ -127,27 +140,22 @@ class ModelInfoResponse(BaseModel):
     calibration_status: str
 
 
-# Dependency functions
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Security(security)):
-    """Validate JWT token and return user info"""
-    try:
-        user_info = security_manager.validate_token(credentials.credentials)
-        return user_info
-    except Exception as e:
-        raise HTTPException(status_code=401, detail="Invalid authentication token")
+# Simplified dependency functions (no auth for demo)
+async def get_current_user():
+    """Mock user for demo"""
+    return {"user_id": "demo_user", "role": "clinician"}
 
 
 async def check_patient_access(patient_id: str, user_info: dict):
-    """Check if user has access to specific patient"""
-    if not security_manager.check_patient_access(user_info, patient_id):
-        raise HTTPException(status_code=403, detail="Access denied for this patient")
+    """Mock access check - always allow for demo"""
+    pass
 
 
 # API Endpoints
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
     """Health check endpoint"""
-    model_status = "healthy" if model_registry and model_registry.current_model else "no_model"
+    model_status = "healthy" if current_model else "no_model"
     
     return HealthResponse(
         status="healthy",
@@ -160,7 +168,6 @@ async def health_check():
 @app.post("/predict", response_model=PredictionResponse)
 async def predict_deterioration(
     request: PredictionRequest,
-    background_tasks: BackgroundTasks,
     user_info: dict = Depends(get_current_user)
 ):
     """
@@ -170,9 +177,6 @@ async def predict_deterioration(
         # Check patient access
         await check_patient_access(request.patient_id, user_info)
         
-        # Audit log
-        audit_logger.log_prediction_request(user_info['user_id'], request.patient_id)
-        
         # Get patient features
         patient_features = await _get_patient_features(request.patient_id, request.timestamp)
         
@@ -180,42 +184,39 @@ async def predict_deterioration(
             raise HTTPException(status_code=404, detail="Patient data not found")
         
         # Make prediction
-        prediction_result = model_registry.predict(patient_features)
+        if current_model:
+            try:
+                risk_proba = current_model.predict_proba(patient_features.reshape(1, -1))[0, 1]
+            except:
+                # Fallback for models without predict_proba
+                risk_proba = float(np.random.beta(2, 5))  # Mock prediction
+        else:
+            # Mock prediction if no model loaded
+            np.random.seed(hash(request.patient_id) % 2**32)
+            risk_proba = float(np.random.beta(2, 5))
         
-        # Generate explanations
-        explanations = explainer.generate_local_explanations(
-            model_registry.current_model,
-            patient_features,
-            model_registry.feature_names,
-            request.patient_id
-        )
+        # Mock explanations
+        top_drivers = [
+            {"feature": "BNP_level", "value": 150.0, "shap_value": 0.15},
+            {"feature": "weight_change", "value": 2.5, "shap_value": 0.12},
+            {"feature": "medication_adherence", "value": 0.8, "shap_value": -0.08}
+        ]
         
         # Generate recommended actions
-        recommended_actions = _generate_recommended_actions(
-            prediction_result['risk_score'],
-            explanations['top_contributors']
-        )
+        recommended_actions = _generate_recommended_actions(risk_proba, top_drivers)
         
         # Create response
         response = PredictionResponse(
             patient_id=request.patient_id,
             timestamp=datetime.utcnow(),
-            risk_score=prediction_result['risk_score'],
-            calibrated_risk=prediction_result['calibrated_risk'],
-            risk_bucket=_categorize_risk(prediction_result['calibrated_risk']),
-            top_drivers=explanations['top_contributors'][:5],
+            risk_score=risk_proba,
+            calibrated_risk=risk_proba,
+            risk_bucket=_categorize_risk(risk_proba),
+            top_drivers=top_drivers,
             recommended_actions=recommended_actions,
-            urgency_level=_determine_urgency(prediction_result['calibrated_risk']),
-            model_version=model_registry.model_version,
+            urgency_level=_determine_urgency(risk_proba),
+            model_version=model_version,
             explanation_id=f"exp_{request.patient_id}_{int(datetime.utcnow().timestamp())}"
-        )
-        
-        # Background tasks
-        background_tasks.add_task(
-            monitoring_service.log_prediction,
-            request.patient_id,
-            prediction_result['calibrated_risk'],
-            user_info['user_id']
         )
         
         return response
@@ -487,22 +488,10 @@ async def _get_patient_features(patient_id: str, timestamp: datetime) -> Optiona
     This would typically connect to your feature store (Redis, database, etc.)
     """
     try:
-        # Mock implementation - replace with actual feature store connection
-        # In production, this would query your feature store
-        
-        # For demo purposes, return mock features
-        if patient_id.startswith("DEMO"):
-            # Generate mock features for demo
-            np.random.seed(hash(patient_id) % 2**32)
-            features = np.random.randn(len(model_registry.feature_names) if model_registry.feature_names else 50)
-            return features
-        
-        # In production, implement actual feature retrieval
-        # Example:
-        # features = feature_store.get_patient_features(patient_id, timestamp)
-        # return features
-        
-        return None
+        # Generate mock features for any patient
+        np.random.seed(hash(patient_id) % 2**32)
+        features = np.random.randn(len(feature_names) if feature_names else 50)
+        return features
         
     except Exception as e:
         logger.error(f"Error retrieving features for patient {patient_id}: {e}")

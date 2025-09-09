@@ -95,16 +95,25 @@ class DataPreprocessor:
         features = {}
         
         # Age calculation
-        if 'date_of_birth' in demographics:
-            birth_date = pd.to_datetime(demographics['date_of_birth'])
-            age = (feature_date - birth_date).days / 365.25
-            features['age'] = age
-            features['age_group'] = self._categorize_age(age)
+        if 'date_of_birth' in demographics and pd.notna(demographics['date_of_birth']):
+            try:
+                birth_date = pd.to_datetime(demographics['date_of_birth'])
+                age = (feature_date - birth_date).days / 365.25
+                features['age'] = age
+                features['age_group'] = self._categorize_age(age)
+            except:
+                features['age'] = 65.0  # Default age
+                features['age_group'] = 'elderly'
+        else:
+            features['age'] = 65.0  # Default age
+            features['age_group'] = 'elderly'
         
         # Gender encoding
-        if 'gender' in demographics:
+        if 'gender' in demographics and pd.notna(demographics['gender']):
             gender_map = {'M': 1, 'F': 0, 'O': 2, 'U': -1}
             features['gender_encoded'] = gender_map.get(demographics['gender'], -1)
+        else:
+            features['gender_encoded'] = -1
         
         # Comorbidity features
         if 'comorbidities' in demographics and demographics['comorbidities']:

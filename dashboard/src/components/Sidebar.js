@@ -5,7 +5,7 @@ import {
   UserGroupIcon,
   ChartBarIcon,
   CogIcon,
-  LogoutIcon,
+  ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -13,7 +13,6 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
   { name: 'Patient Cohort', href: '/cohort', icon: UserGroupIcon },
   { name: 'Analytics', href: '/analytics', icon: ChartBarIcon },
-  { name: 'Settings', href: '/settings', icon: CogIcon },
 ];
 
 const Sidebar = () => {
@@ -21,37 +20,37 @@ const Sidebar = () => {
   const location = useLocation();
 
   return (
-    <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 lg:flex-col">
-      <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white px-6 shadow-lg">
-        <div className="flex h-16 shrink-0 items-center">
+    <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-80 lg:flex-col">
+      <div className="flex grow flex-col gap-y-6 overflow-y-auto bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 px-6 shadow-2xl border-r border-slate-700">
+        <div className="flex h-20 shrink-0 items-center">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="h-8 w-8 bg-primary-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">ML</span>
+              <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bo ld text-lg">E-ZC</span>
               </div>
             </div>
-            <div className="ml-3">
-              <h1 className="text-lg font-semibold text-gray-900">
-                Patient ML
+            <div className="ml-4">
+              <h1 className="text-xl font-bold text-white">
+                E-ZenithCare
               </h1>
-              <p className="text-xs text-gray-500">Deterioration Prediction</p>
+              <p className="text-sm text-slate-300"></p>
             </div>
           </div>
         </div>
         
         <nav className="flex flex-1 flex-col">
-          <ul role="list" className="flex flex-1 flex-col gap-y-7">
-            <li>
-              <ul role="list" className="-mx-2 space-y-1">
+          <ul className="flex flex-1 flex-col">
+            <li className="flex-1">
+              <ul className="-mx-2 space-y-2">
                 {navigation.map((item) => (
                   <li key={item.name}>
                     <NavLink
                       to={item.href}
                       className={({ isActive }) =>
-                        `group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold transition-colors ${
+                        `group flex gap-x-4 rounded-xl p-3 text-sm leading-6 font-semibold transition-all duration-200 transform hover:scale-105 ${
                           isActive
-                            ? 'bg-primary-50 text-primary-600'
-                            : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                            ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                            : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
                         }`
                       }
                     >
@@ -67,31 +66,31 @@ const Sidebar = () => {
             </li>
             
             <li className="mt-auto">
-              <div className="border-t border-gray-200 pt-4">
-                <div className="flex items-center px-2 py-3">
+              <div className="border-t border-slate-700 pt-6">
+                <div className="flex items-center px-3 py-4 bg-slate-800/50 rounded-xl mb-4">
                   <div className="flex-shrink-0">
-                    <div className="h-8 w-8 bg-gray-300 rounded-full flex items-center justify-center">
-                      <span className="text-gray-600 font-medium text-sm">
-                        {user?.name?.charAt(0) || 'U'}
+                    <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                      <span className="text-white font-bold text-sm">
+                        {user?.name?.charAt(0) || 'D'}
                       </span>
                     </div>
                   </div>
                   <div className="ml-3 flex-1">
-                    <p className="text-sm font-medium text-gray-900">
-                      {user?.name || 'User'}
+                    <p className="text-sm font-semibold text-white">
+                      Dr. Sarah Johnson
                     </p>
-                    <p className="text-xs text-gray-500 capitalize">
-                      {user?.role || 'User'}
+                    <p className="text-xs text-slate-400 capitalize">
+                      Clinician
                     </p>
                   </div>
                 </div>
                 
                 <button
                   onClick={logout}
-                  className="group flex w-full gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold text-gray-700 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  className="group flex w-full gap-x-3 rounded-xl p-3 text-sm leading-6 font-semibold text-slate-300 hover:text-white hover:bg-red-600/20 border border-slate-600 hover:border-red-500/50 transition-all duration-200 transform hover:scale-105"
                 >
-                  <LogoutIcon
-                    className="h-6 w-6 shrink-0"
+                  <ArrowRightOnRectangleIcon
+                    className="h-5 w-5 shrink-0"
                     aria-hidden="true"
                   />
                   Sign out

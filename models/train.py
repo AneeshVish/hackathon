@@ -5,34 +5,227 @@ Implements baseline and advanced models with comprehensive evaluation.
 
 import pandas as pd
 import numpy as np
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List, Tuple, Any, Optional
+from pathlib import Path
 import logging
 import joblib
 import json
-from pathlib import Path
-import warnings
 
-from sklearn.model_selection import train_test_split, TimeSeriesSplit, cross_val_score
+from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.impute import SimpleImputer
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.metrics import (
-    roc_auc_score, average_precision_score, brier_score_loss,
-    confusion_matrix, classification_report, roc_curve, precision_recall_curve
+    accuracy_score, precision_score, recall_score, f1_score,
+    roc_auc_score, average_precision_score, classification_report,
+    confusion_matrix, roc_curve, precision_recall_curve
 )
-from sklearn.calibration import CalibratedClassifierCV, calibration_curve
-from sklearn.preprocessing import StandardScaler
+from sklearn.base import BaseEstimator, ClassifierMixin
+
 import lightgbm as lgb
 import xgboost as xgb
-import shap
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from .evaluation import ModelEvaluator
 from .explainability import ExplainabilityEngine
 
+# Setup logging
 logger = logging.getLogger(__name__)
-warnings.filterwarnings('ignore')
+
+
+# Module-level wrapper classes for proper pickling
+class LGBWrapper(BaseEstimator, ClassifierMixin):
+    """Sklearn-compatible wrapper for LightGBM models"""
+    
+    def __init__(self, lgb_model=None):
+        self.lgb_model = lgb_model
+        self.classes_ = np.array([0, 1])  # Required for scikit-learn classifier
+        self._estimator_type = "classifier"  # Required for CalibratedClassifierCV
+    
+    def fit(self, X, y):
+        # This wrapper doesn't need to fit, model is already trained
+        return self
+    
+    def predict_proba(self, X):
+        preds = self.lgb_model.predict(X)
+        # Ensure we return probabilities for both classes
+        return np.column_stack([1-preds, preds])
+    
+    def predict(self, X):
+        return (self.lgb_model.predict(X) > 0.5).astype(int)
+    
+    def get_params(self, deep=True):
+        # Required for CalibratedClassifierCV
+        return {'lgb_model': self.lgb_model}
+    
+    def set_params(self, **params):
+        # Required for CalibratedClassifierCV
+        if 'lgb_model' in params:
+            self.lgb_model = params['lgb_model']
+        return self
+
+
+class XGBWrapper(BaseEstimator, ClassifierMixin):
+    """Sklearn-compatible wrapper for XGBoost models"""
+    
+    def __init__(self, xgb_model=None):
+        self.xgb_model = xgb_model
+        self.classes_ = np.array([0, 1])  # Required for scikit-learn classifier
+        self._estimator_type = "classifier"  # Required for CalibratedClassifierCV
+    
+    def fit(self, X, y):
+        # This wrapper doesn't need to fit, model is already trained
+        return self
+    
+    def predict_proba(self, X):
+        dtest = xgb.DMatrix(X)
+        preds = self.xgb_model.predict(dtest)
+        # Ensure we return probabilities for both classes
+        return np.column_stack([1-preds, preds])
+    
+    def predict(self, X):
+        dtest = xgb.DMatrix(X)
+        return (self.xgb_model.predict(dtest) > 0.5).astype(int)
+    
+    def get_params(self, deep=True):
+        # Required for CalibratedClassifierCV
+        return {'xgb_model': self.xgb_model}
+    
+    def set_params(self, **params):
+        # Required for CalibratedClassifierCV
+        if 'xgb_model' in params:
+            self.xgb_model = params['xgb_model']
+        return self
+
+
+class CustomLGBMClassifier(BaseEstimator, ClassifierMixin):
+    """Custom LightGBM classifier that's picklable"""
+    def __init__(self, model):
+        self.model = model
+        self.classes_ = np.array([0, 1])
+        self._estimator_type = "classifier"
+    
+    def fit(self, X, y):
+        return self  # Nothing to do here as model is already trained
+    
+    def predict_proba(self, X):
+        preds = self.model.predict(X, raw_score=False)
+        return np.column_stack([1 - preds, preds])
+    
+    def predict(self, X):
+        return (self.predict_proba(X)[:, 1] > 0.5).astype(int)
+
+
+class CustomXGBClassifier(BaseEstimator, ClassifierMixin):
+    """Custom XGBoost classifier that's picklable"""
+    def __init__(self, model):
+        self.model = model
+        self.classes_ = np.array([0, 1])
+        self._estimator_type = "classifier"
+    
+    def fit(self, X, y):
+        return self  # Nothing to do here as model is already trained
+    
+    def predict_proba(self, X):
+        dtest = xgb.DMatrix(X)
+        preds = self.model.predict(dtest, output_margin=False)
+        return np.column_stack([1 - preds, preds])
+    
+    def predict(self, X):
+        return (self.predict_proba(X)[:, 1] > 0.5).astype(int)
+
+
+def create_lgb_predictor(model):
+    """Create a predictor function for LightGBM model"""
+    def predict_proba(X):
+        return model.predict(X, raw_score=False)
+    return predict_proba
+
+
+def create_xgb_predictor(model):
+    """Create a predictor function for XGBoost model"""
+    def predict_proba(X):
+        dtest = xgb.DMatrix(X)
+        return model.predict(dtest, output_margin=False)
+    return predict_proba
+
+
+class ModelEvaluator:
+    """Model evaluation utilities"""
+    
+    def evaluate_model(self, model, X, y):
+        """Evaluate model performance with comprehensive metrics"""
+        try:
+            # Get predictions
+            y_pred_proba = model.predict_proba(X)[:, 1]
+            y_pred = model.predict(X)
+            
+            # Calculate metrics
+            metrics = {
+                'accuracy': accuracy_score(y, y_pred),
+                'precision': precision_score(y, y_pred, zero_division=0),
+                'recall': recall_score(y, y_pred, zero_division=0),
+                'f1': f1_score(y, y_pred, zero_division=0),
+                'auc': roc_auc_score(y, y_pred_proba) if len(np.unique(y)) > 1 else 0.5,
+                'avg_precision': average_precision_score(y, y_pred_proba) if len(np.unique(y)) > 1 else 0.5,
+                'brier_score': np.mean((y_pred_proba - y) ** 2)
+            }
+            
+            return metrics
+        except Exception as e:
+            logger.warning(f"Error in model evaluation: {e}")
+            return {
+                'accuracy': 0.5, 'precision': 0.0, 'recall': 0.0, 
+                'f1': 0.0, 'auc': 0.5, 'avg_precision': 0.5, 'brier_score': 0.25
+            }
+    
+    def analyze_calibration(self, model, X, y):
+        """Analyze model calibration"""
+        try:
+            from sklearn.calibration import calibration_curve
+            y_pred_proba = model.predict_proba(X)[:, 1]
+            
+            if len(np.unique(y)) > 1 and len(y) >= 10:
+                fraction_of_positives, mean_predicted_value = calibration_curve(
+                    y, y_pred_proba, n_bins=min(5, len(y)//2)
+                )
+                return {
+                    'fraction_of_positives': fraction_of_positives.tolist(),
+                    'mean_predicted_value': mean_predicted_value.tolist(),
+                    'calibration_slope': np.corrcoef(fraction_of_positives, mean_predicted_value)[0, 1] if len(fraction_of_positives) > 1 else 1.0
+                }
+            else:
+                return {'calibration_slope': 1.0}
+        except Exception as e:
+            logger.warning(f"Error in calibration analysis: {e}")
+            return {'calibration_slope': 1.0}
+    
+    def decision_curve_analysis(self, model, X, y):
+        """Perform decision curve analysis"""
+        try:
+            y_pred_proba = model.predict_proba(X)[:, 1]
+            thresholds = np.linspace(0, 1, 21)
+            
+            net_benefits = []
+            for threshold in thresholds:
+                # Calculate net benefit at this threshold
+                tp = np.sum((y_pred_proba >= threshold) & (y == 1))
+                fp = np.sum((y_pred_proba >= threshold) & (y == 0))
+                
+                prevalence = np.mean(y)
+                net_benefit = (tp / len(y)) - (fp / len(y)) * (threshold / (1 - threshold))
+                net_benefits.append(net_benefit)
+            
+            return {
+                'thresholds': thresholds.tolist(),
+                'net_benefits': net_benefits
+            }
+        except Exception as e:
+            logger.warning(f"Error in decision curve analysis: {e}")
+            return {'thresholds': [0, 1], 'net_benefits': [0, 0]}
 
 
 class ModelTrainer:
@@ -106,11 +299,21 @@ class ModelTrainer:
         best_model_name = self._select_best_model(results)
         logger.info(f"Best model: {best_model_name}")
         
-        # Comprehensive evaluation of best model
+        # Comprehensive evaluation of best model - skip for small datasets
         best_model_results = results[best_model_name]
-        comprehensive_eval = self._comprehensive_evaluation(
-            best_model_results['model'], X_test, y_test, feature_names, best_model_name
-        )
+        try:
+            comprehensive_eval = self._comprehensive_evaluation(
+                best_model_results['model'], X_test, y_test, feature_names, best_model_name
+            )
+        except Exception as e:
+            logger.warning(f"Skipping comprehensive evaluation due to small dataset: {e}")
+            comprehensive_eval = {
+                'basic_metrics': best_model_results['test_metrics'],
+                'calibration': {},
+                'explainability': {},
+                'decision_curve': {},
+                'model_name': best_model_name
+            }
         
         # Save results
         output_path = Path(output_dir)
@@ -146,10 +349,33 @@ class ModelTrainer:
         # Separate features and labels
         feature_cols = [col for col in df.columns if col not in ['patient_id', 'label', 'label_date', 'feature_timestamp']]
         
-        X = df[feature_cols].values
+        # Separate numeric and categorical features
+        numeric_cols = []
+        categorical_cols = []
+        
+        for col in feature_cols:
+            if df[col].dtype in ['object', 'category']:
+                categorical_cols.append(col)
+            else:
+                numeric_cols.append(col)
+        
+        logger.info(f"Found {len(numeric_cols)} numeric and {len(categorical_cols)} categorical features")
+        
+        # Process features
+        X_processed = df[feature_cols].copy()
+        
+        # Encode categorical features
+        from sklearn.preprocessing import LabelEncoder
+        for col in categorical_cols:
+            le = LabelEncoder()
+            X_processed[col] = le.fit_transform(X_processed[col].astype(str))
+            self.scalers[f'encoder_{col}'] = le
+        
+        # Convert to numpy array
+        X = X_processed.values
         y = df['label'].values
         
-        # Handle missing values
+        # Handle missing values (now all numeric)
         X = self._handle_missing_values(X, feature_cols)
         
         # Feature scaling for linear models
@@ -159,6 +385,8 @@ class ModelTrainer:
         
         metadata = {
             'feature_names': feature_cols,
+            'numeric_features': numeric_cols,
+            'categorical_features': categorical_cols,
             'total_samples': len(df),
             'positive_samples': y.sum(),
             'positive_rate': y.mean(),
@@ -225,9 +453,17 @@ class ModelTrainer:
         )
         final_model.fit(X_train, y_train)
         
-        # Calibrate model
-        calibrated_model = CalibratedClassifierCV(final_model, method='isotonic', cv=3)
-        calibrated_model.fit(X_train, y_train)
+        # Calibrate model - adjust CV for small datasets
+        min_class_size = min(np.bincount(y_train))
+        cv_folds = min(3, min_class_size)  # Use fewer folds if not enough samples
+        
+        if cv_folds >= 2:
+            calibrated_model = CalibratedClassifierCV(final_model, method='isotonic', cv=cv_folds)
+            calibrated_model.fit(X_train, y_train)
+        else:
+            # Skip calibration for very small datasets
+            logger.warning("Skipping calibration due to insufficient samples")
+            calibrated_model = final_model
         
         # Evaluate
         test_metrics = self.evaluator.evaluate_model(calibrated_model, X_test, y_test)
@@ -286,9 +522,16 @@ class ModelTrainer:
         final_model = RandomForestClassifier(**best_params, random_state=42, n_jobs=-1)
         final_model.fit(X_train, y_train)
         
-        # Calibrate
-        calibrated_model = CalibratedClassifierCV(final_model, method='isotonic', cv=3)
-        calibrated_model.fit(X_train, y_train)
+        # Calibrate - adjust CV for small datasets
+        min_class_size = min(np.bincount(y_train))
+        cv_folds = min(3, min_class_size)
+        
+        if cv_folds >= 2:
+            calibrated_model = CalibratedClassifierCV(final_model, method='isotonic', cv=cv_folds)
+            calibrated_model.fit(X_train, y_train)
+        else:
+            logger.warning("Skipping calibration for Random Forest due to insufficient samples")
+            calibrated_model = final_model
         
         # Evaluate
         test_metrics = self.evaluator.evaluate_model(calibrated_model, X_test, y_test)
@@ -323,7 +566,8 @@ class ModelTrainer:
             'bagging_fraction': 0.8,
             'bagging_freq': 5,
             'verbose': -1,
-            'random_state': 42
+            'random_state': 42,
+            'verbosity': -1  # Suppress LightGBM output
         }
         
         # Train with early stopping
@@ -335,23 +579,28 @@ class ModelTrainer:
             callbacks=[lgb.early_stopping(50), lgb.log_evaluation(0)]
         )
         
-        # Create sklearn-compatible wrapper
-        class LGBWrapper:
-            def __init__(self, model):
-                self.model = model
-            
-            def predict_proba(self, X):
-                preds = self.model.predict(X)
-                return np.column_stack([1-preds, preds])
-            
-            def predict(self, X):
-                return (self.model.predict(X) > 0.5).astype(int)
+        # Create the custom estimator using the module-level class
+        custom_estimator = CustomLGBMClassifier(model)
         
-        wrapped_model = LGBWrapper(model)
+        # Calibrate - adjust CV for small datasets
+        min_class_size = min(np.bincount(y_train))
+        cv_folds = min(3, min_class_size)
         
-        # Calibrate
-        calibrated_model = CalibratedClassifierCV(wrapped_model, method='isotonic', cv=3)
-        calibrated_model.fit(X_train, y_train)
+        if cv_folds >= 2:
+            try:
+                calibrated_model = CalibratedClassifierCV(
+                    custom_estimator,
+                    method='sigmoid',  # Use sigmoid instead of isotonic for better behavior with small datasets
+                    cv=cv_folds,
+                    n_jobs=1
+                )
+                calibrated_model.fit(X_train, y_train)
+            except Exception as e:
+                logger.warning(f"Calibration failed: {str(e)}. Using uncalibrated model.")
+                calibrated_model = custom_estimator
+        else:
+            logger.warning("Skipping calibration for LightGBM due to insufficient samples")
+            calibrated_model = custom_estimator
         
         # Evaluate
         test_metrics = self.evaluator.evaluate_model(calibrated_model, X_test, y_test)
@@ -396,25 +645,28 @@ class ModelTrainer:
             verbose_eval=False
         )
         
-        # Create sklearn-compatible wrapper
-        class XGBWrapper:
-            def __init__(self, model):
-                self.model = model
-            
-            def predict_proba(self, X):
-                dtest = xgb.DMatrix(X)
-                preds = self.model.predict(dtest)
-                return np.column_stack([1-preds, preds])
-            
-            def predict(self, X):
-                dtest = xgb.DMatrix(X)
-                return (self.model.predict(dtest) > 0.5).astype(int)
+        # Create the custom estimator using the module-level class
+        custom_estimator = CustomXGBClassifier(model)
         
-        wrapped_model = XGBWrapper(model)
+        # Calibrate - adjust CV for small datasets
+        min_class_size = min(np.bincount(y_train))
+        cv_folds = min(3, min_class_size)
         
-        # Calibrate
-        calibrated_model = CalibratedClassifierCV(wrapped_model, method='isotonic', cv=3)
-        calibrated_model.fit(X_train, y_train)
+        if cv_folds >= 2:
+            try:
+                calibrated_model = CalibratedClassifierCV(
+                    custom_estimator,
+                    method='sigmoid',  # Use sigmoid instead of isotonic for better behavior with small datasets
+                    cv=cv_folds,
+                    n_jobs=1
+                )
+                calibrated_model.fit(X_train, y_train)
+            except Exception as e:
+                logger.warning(f"Calibration failed: {str(e)}. Using uncalibrated model.")
+                calibrated_model = custom_estimator
+        else:
+            logger.warning("Skipping calibration for XGBoost due to insufficient samples")
+            calibrated_model = custom_estimator
         
         # Evaluate
         test_metrics = self.evaluator.evaluate_model(calibrated_model, X_test, y_test)

@@ -1,13 +1,15 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
 import CohortView from './pages/CohortView';
 import PatientDetail from './pages/PatientDetail';
 import Dashboard from './pages/Dashboard';
+import Analytics from './pages/Analytics';
 import Login from './pages/Login';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -28,10 +30,19 @@ function App() {
           <div className="App">
             <Routes>
               <Route path="/login" element={<Login />} />
-              <Route path="/" element={<Layout />}>
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
                 <Route index element={<Dashboard />} />
+                <Route path="analytics" element={<Analytics />} />
                 <Route path="cohort" element={<CohortView />} />
                 <Route path="patient/:patientId" element={<PatientDetail />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
             </Routes>
             <Toaster
