@@ -8,7 +8,8 @@ import {
   ChartBarIcon,
   ClockIcon,
 } from '@heroicons/react/24/outline';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import axios from 'axios';
 
 const PatientDetail = () => {
   const { patientId } = useParams();

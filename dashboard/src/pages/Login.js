@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { LockClosedIcon, UserIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
+import { ShieldCheckIcon } from '@heroicons/react/24/outline';
 
 const Login = () => {
   const [username, setUsername] = useState('');
@@ -96,9 +96,15 @@ const Login = () => {
                   <label htmlFor="password" className="text-sm font-medium text-gray-700 block">
                     Password
                   </label>
-                  <a href="#" className="text-xs text-blue-600 hover:text-blue-800 transition-colors font-medium">
-                    Forgot password?
-                  </a>
+                  <div className="text-sm">
+                    <button 
+                      type="button" 
+                      className="font-medium text-blue-600 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      onClick={() => {/* TODO: Implement password reset */}}
+                    >
+                      Forgot your password?
+                    </button>
+                  </div>
                 </div>
                 <div className="relative">
                   <input

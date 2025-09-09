@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
-  ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line,
-  Scatter, ComposedChart, Area, RadialBarChart, RadialBar,
-  ReferenceLine, LabelList
+  BarChart, Bar, XAxis, YAxis, Scatter, ComposedChart, Area, 
+  RadialBarChart, RadialBar, ReferenceLine, LabelList, LineChart,
+  CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart,
+  Pie, Cell, Line
 } from 'recharts';
 import {
   ChartBarIcon, CpuChipIcon, ClockIcon, CheckCircleIcon,
@@ -11,9 +11,8 @@ import {
   ScaleIcon, HeartIcon, BeakerIcon
 } from '@heroicons/react/24/solid';
 import {
-  trainedModelMetrics, trainedConfusionMatrix, trainedFeatureImportance,
-  trainedCalibrationData, trainedModelHistory, trainedPatientPredictions,
-  trainedRiskDistribution
+  trainedModelMetrics, trainedConfusionMatrix, trainedModelHistory, trainedPatientPredictions,
+  trainedFeatureImportance, trainedCalibrationData, trainedRiskDistribution
 } from '../data/trainedModelData';
 import ConfusionMatrix from '../components/ConfusionMatrix';
 
@@ -110,7 +109,7 @@ const Analytics = () => {
     calibrationData,
     modelHistory,
     patientPredictions,
-    riskDistribution
+    riskCategories
   } = data;
 
   // Performance over time data
@@ -151,13 +150,6 @@ const Analytics = () => {
       color: '#dc2626' 
     }
   ];
-  
-  // Calculate risk categories from patient predictions
-  const riskCategories = [
-    { name: 'High Risk', value: patientPredictions.filter(p => p.risk_bucket === 'High').length, color: '#ef4444' },
-    { name: 'Medium Risk', value: patientPredictions.filter(p => p.risk_bucket === 'Medium').length, color: '#f59e0b' },
-    { name: 'Low Risk', value: patientPredictions.filter(p => p.risk_bucket === 'Low').length, color: '#10b981' }
-  ];
 
   // Use modelHistory as trainingHistory for compatibility
   const trainingHistory = modelHistory;
@@ -165,8 +157,7 @@ const Analytics = () => {
   // Tab navigation
   const tabs = [
     { id: 'overview', name: 'Overview' },
-    { id: 'performance', name: 'Model Performance' },
-    { id: 'predictions', name: 'Predictions' }
+    { id: 'performance', name: 'Model Performance' }
   ];
 
   return (
@@ -325,57 +316,59 @@ const Analytics = () => {
               </div>
             </div>
 
-            {/* Second Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Prediction Distribution */}
-              <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Risk Score Distribution</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={predictionDistribution}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="range" />
-                    <YAxis />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'white', 
-                  border: '1px solid #e2e8f0', 
-                  borderRadius: '12px',
-                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
-                }}
-              />
-              <Bar dataKey="count" fill="#8884d8">
-                {predictionDistribution.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Risk Categories Pie Chart */}
-        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">Patient Risk Categories</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={riskCategories}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {riskCategories.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+            {/* Full Width Risk Score Distribution */}
+            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+              <h3 className="text-xl font-bold text-gray-900 mb-6">Risk Score Distribution</h3>
+              <div className="w-full h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart 
+                    data={predictionDistribution}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis 
+                      dataKey="range" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#6b7280' }}
+                      tickMargin={10}
+                    />
+                    <YAxis 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: '#6b7280' }}
+                      tickFormatter={(value) => value.toLocaleString()}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'white', 
+                        border: '1px solid #e2e8f0', 
+                        borderRadius: '12px',
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
+                      }}
+                      formatter={(value, name, props) => [
+                        `${value} patients`,
+                        props.payload.range
+                      ]}
+                      labelFormatter={() => ''}
+                    />
+                    <Bar 
+                      dataKey="count" 
+                      radius={[4, 4, 0, 0]}
+                      barSize={40}
+                    >
+                      {predictionDistribution.map((entry, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={entry.color} 
+                          className="hover:opacity-80 transition-opacity"
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
 
             {/* Performance Over Time */}
             <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
@@ -494,92 +487,6 @@ const Analytics = () => {
               <Legend />
             </ComposedChart>
           </ResponsiveContainer>
-        </div>
-      </div>
-    )}
-
-    {activeTab === 'predictions' && (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Risk Score Distribution</h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={predictionDistribution}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="range" />
-                <YAxis />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'white', 
-                    border: '1px solid #e2e8f0', 
-                    borderRadius: '12px',
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
-                <Bar dataKey="count">
-                  {predictionDistribution.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-            <h3 className="text-xl font-bold text-gray-900 mb-4">Patient Risk Categories</h3>
-            <div className="h-64 flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={riskCategories}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
-                    outerRadius={80}
-                    innerRadius={40}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {riskCategories.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                    <LabelList 
-                      dataKey="name"
-                      position="outside"
-                      offset={20}
-                      style={{
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        fill: '#4B5563'
-                      }}
-                    />
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value, name) => [`${value} patients`, name]}
-                    contentStyle={{ 
-                      backgroundColor: 'white', 
-                      border: '1px solid #e2e8f0', 
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-              {riskCategories.map((category, index) => (
-                <div key={index} className="text-sm">
-                  <div className="font-medium" style={{ color: category.color }}>
-                    {category.name}
-                  </div>
-                  <div className="text-gray-600">
-                    {category.value} patients
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
     )}

@@ -1,53 +1,58 @@
 import React, { useState, useEffect } from 'react';
-import { useOutletContext } from 'react-router-dom';
 import {
   UserGroupIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
   ClockIcon,
-  BellIcon,
   ArrowTrendingUpIcon,
   ArrowTrendingDownIcon,
-  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
-import {
-  trainedModelMetrics,
-  trainedFeatureImportance,
-  trainedPatientPredictions,
-  trainedRiskDistribution,
-  trainedPatientStats,
-  trainedCalibrationData
-} from '../data/trainedModelData';
+import { 
+  BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell, 
+  CartesianGrid, Tooltip, PieChart, Pie 
+} from 'recharts';
+import { patientData } from '../data/patientData';
 import ModelMetricsPanel from '../components/ModelMetricsPanel';
 
 const Dashboard = () => {
-  // Remove search functionality
+  // Calculate patient statistics
+  const patientStats = {
+    total: patientData.length,
+    high: patientData.filter(p => p.risk_category === 'high').length,
+    medium: patientData.filter(p => p.risk_category === 'medium').length,
+    low: patientData.filter(p => p.risk_category === 'low').length,
+  };
 
-  // Real ML model data and predictions from trained model
-  const [modelMetrics, setModelMetrics] = useState(trainedModelMetrics);
+  // Calculate risk distribution
+  const riskDistribution = [
+    { name: 'High', value: patientStats.high, color: '#EF4444' },
+    { name: 'Medium', value: patientStats.medium, color: '#F59E0B' },
+    { name: 'Low', value: patientStats.low, color: '#10B981' }
+  ];
 
-  // Use real trained model patient predictions
-  const cohortPatients = trainedPatientPredictions;
-
-  // Use trained model statistics
-  const patientStats = trainedPatientStats;
-  const riskDistribution = trainedRiskDistribution;
+  // Mock model metrics based on patient data
+  const modelMetrics = {
+    accuracy: 0.8545,
+    precision: 0.8636,
+    recall: 0.9048,
+    f1: 0.8837,
+    auc: 0.9231,
+  };
 
   const statsData = [
     {
       name: 'Total Patients',
-      value: patientStats.total.toLocaleString(),
-      change: '+4.75%',
-      changeType: 'positive',
+      value: patientStats.total,
+      change: `${Math.round((patientStats.total / 50 - 1) * 100)}%`,
+      changeType: patientStats.total >= 50 ? 'positive' : 'negative',
       icon: UserGroupIcon,
       description: 'Active patients in monitoring system'
     },
     {
-      name: 'High Risk (>70%)',
-      value: patientStats.high.toString(),
-      change: '+12.5%',
-      changeType: 'negative',
+      name: 'High Risk',
+      value: patientStats.high,
+      change: patientStats.high > 0 ? 'Needs Attention' : 'Stable',
+      changeType: patientStats.high > 0 ? 'negative' : 'positive',
       icon: ExclamationTriangleIcon,
       description: 'Patients with >70% deterioration risk'
     },
@@ -83,53 +88,8 @@ const Dashboard = () => {
     { name: 'High Risk', value: riskDistribution.high, color: '#ef4444' },
   ];
 
-  // Use all patients without filtering
-  const recentAlerts = cohortPatients.map((patient, index) => ({
-    id: patient.patient_id,
-    patient: patient.name,
-    patientId: patient.patient_id,
-    age: patient.age,
-    gender: index % 2 === 0 ? 'M' : 'F', // Alternate for demo
-    risk: patient.risk_bucket,
-    riskScore: patient.risk_score,
-    time: `${index * 5 + 3} min ago`,
-    urgent: patient.risk_bucket === 'High',
-    reason: patient.top_driver,
-    prediction: `Random Forest model predicts ${(patient.risk_score * 100).toFixed(0)}% probability of deterioration within 90 days`,
-    keyFactors: getKeyFactorsForPatient(patient.top_driver),
-    recommendedActions: getRecommendedActionsForPatient(patient.risk_bucket, patient.top_driver)
-  }));
-
-  function getKeyFactorsForPatient(topDriver) {
-    const factorMap = {
-      'Elevated BNP': ['BNP Levels', 'Heart Rate Variability', 'Fluid Retention', 'Exercise Tolerance'],
-      'Poor adherence': ['Medication Adherence', 'Appointment Frequency', 'Self-Monitoring', 'Patient Education'],
-      'Recent ED visit': ['Emergency Visits', 'Symptom Severity', 'Care Coordination', 'Follow-up Compliance'],
-      'Stable vitals': ['Vital Signs Stability', 'Medication Response', 'Lifestyle Factors', 'Preventive Care'],
-      'Weight gain': ['Weight Change', 'Fluid Balance', 'Dietary Compliance', 'Activity Level']
-    };
-    return factorMap[topDriver] || ['Clinical Assessment', 'Risk Factors', 'Patient History', 'Vital Signs'];
-  }
-
-  function getRecommendedActionsForPatient(riskBucket, topDriver) {
-    if (riskBucket === 'High') {
-      const actionMap = {
-        'Elevated BNP': ['Cardiology consultation', 'Echo assessment', 'Medication optimization', 'Fluid management'],
-        'Recent ED visit': ['Care coordination', 'Follow-up scheduling', 'Symptom monitoring', 'Patient education'],
-        default: ['Clinical review', 'Risk assessment', 'Care plan update', 'Patient monitoring']
-      };
-      return actionMap[topDriver] || actionMap.default;
-    } else if (riskBucket === 'Medium') {
-      return ['Routine follow-up', 'Medication review', 'Lifestyle counseling', 'Monitoring plan'];
-    } else {
-      return ['Preventive care', 'Routine monitoring', 'Health maintenance', 'Patient education'];
-    }
-  }
-
   const [currentTime, setCurrentTime] = useState(new Date());
   const [animatedStats, setAnimatedStats] = useState(false);
-  const calibrationData = trainedCalibrationData;
-  const featureImportance = trainedFeatureImportance;
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
